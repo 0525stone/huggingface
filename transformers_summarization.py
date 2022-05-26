@@ -57,7 +57,8 @@ class CustomDataset(Dataset):
 # Creating the training function. This will be called in the main function. It is run depending on the epoch value.
 # The model is put into train mode and then we wnumerate over the training loader and passed to the defined network 
 
-def train(epoch, tokenizer, model, device, loader, optimizer):
+def train(epoch, tokenizer, model, device, loader, optimizer, tblogger=0, iter_class=0):  
+    # class화할 때, self.iter로 해야함.  iter_class => self.iter
     model.train()
     for _,data in enumerate(loader, 0):
         y = data['target_ids'].to(device, dtype = torch.long)
@@ -71,19 +72,21 @@ def train(epoch, tokenizer, model, device, loader, optimizer):
         loss = outputs[0]
         
         # if _%10 == 0:
-        #     wandb.log({"Training Loss": loss.item()})
+        print(f'training loss record\t{iter_class}')
+        tblogger.add_scalar("train/training_loss", loss, iter_class) 
 
-        if _%500==0:
-            print(f'Epoch: {epoch}, Loss:  {loss.item()}')
+        # if _%500==0:
+        #     print(f'Epoch: {epoch}, Loss:  {loss.item()}')
         
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        iter_class += 1
         # xm.optimizer_step(optimizer)
         # xm.mark_step()
-        return loss
+        return loss, iter_class
 
-def validate(epoch, tokenizer, model, device, loader):
+def validate(epoch, tokenizer, model, device, loader, tblogger=0):
     model.eval()
     predictions = []
     actuals = []
@@ -106,8 +109,14 @@ def validate(epoch, tokenizer, model, device, loader):
             target = [tokenizer.decode(t, skip_special_tokens=True, clean_up_tokenization_spaces=True)for t in y]
 
             # tennsorboard 추가할 부분 여기인 듯??? 
+            # if _%10==0:
+            #     print(f'pred\t{preds[:2]}\ntarget\t{target}')
+
 
             if _%100==0:
+                # print(f'preds')
+                # tblogger.add_scalar("val/preds", preds, _)
+                # tblogger.add_scalar("val/target", target, _) 
                 print(f'Completed {_}')
 
             predictions.extend(preds)
@@ -129,9 +138,9 @@ def main():
     # Defining some key variables that will be used later on in the training  
 #     config = wandb.config          # Initialize config
     # 나중에 config로 변수를 다 받을 부분들
-    TRAIN_BATCH_SIZE = 2    # input batch size for training (default: 64)
-    VALID_BATCH_SIZE = 2    # input batch size for testing (default: 1000)
-    TRAIN_EPOCHS = 2        # number of epochs to train (default: 10)
+    TRAIN_BATCH_SIZE = 4 # 2    # input batch size for training (default: 64)
+    VALID_BATCH_SIZE = 4 # 2    # input batch size for testing (default: 1000)
+    TRAIN_EPOCHS =  20 # 2        # number of epochs to train (default: 10)
     VAL_EPOCHS = 1 
     LEARNING_RATE = 1e-4    # learning rate (default: 0.01)
     SEED = 42               # random seed (default: 42)
@@ -139,9 +148,13 @@ def main():
     SUMMARY_LEN = 150 
     LOGGER = 1
 
+    # TODO : class화할 때, self. 변수로 들어갈 것들
+    # # 뒤에 있는 loss 도 class 내의 변수로 들어가야함
+    iter_class = 0
+
     # tensorboard loggers
     if LOGGER:
-        tblogger = SummaryWriter("tensorboard")# os.path.join(self.file_name, "tensorboard"))
+        tblogger = SummaryWriter("tensorboard/set")# os.path.join(self.file_name, "tensorboard"))
     
 
     # # 기록하는 내용들은 이렇게 보내줘야함
@@ -218,16 +231,16 @@ def main():
     print('Initiating Fine-Tuning for the model on our dataset')
 
     for epoch in range(TRAIN_EPOCHS):
-        loss = train(epoch, tokenizer, model, device, training_loader, optimizer)
-        print(f'\nloss check\n{epoch}\n{loss}\n')
-        tblogger.add_scalar("train/total_loss", loss, epoch) 
+        loss, iter_class = train(epoch, tokenizer, model, device, training_loader, optimizer,tblogger, iter_class)
+        # print(f'\nloss check\n{epoch}\n{loss}\n')
+        tblogger.add_scalar("epoch/total_loss", loss, epoch) 
 
 
     # Validation loop and saving the resulting file with predictions and acutals in a dataframe.
     # Saving the dataframe as predictions.csv
     print('Now generating summaries on our fine tuned model for the validation dataset and saving it in a dataframe')
     for epoch in range(VAL_EPOCHS):
-        predictions, actuals = validate(epoch, tokenizer, model, device, val_loader)
+        predictions, actuals = validate(epoch, tokenizer, model, device, val_loader,tblogger)
         final_df = pd.DataFrame({'Generated Text':predictions,'Actual Text':actuals})
         final_df.to_csv('./models/predictions.csv')
         print('Output Files generated for review')
