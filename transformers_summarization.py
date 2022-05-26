@@ -40,7 +40,7 @@ class CustomDataset(Dataset):
         # truncation=True 적용
         source = self.tokenizer.batch_encode_plus([ctext], max_length= self.source_len, pad_to_max_length=True,return_tensors='pt', truncation=True)
         target = self.tokenizer.batch_encode_plus([text], max_length= self.summ_len, pad_to_max_length=True,return_tensors='pt', truncation=True)
-
+        
         source_ids = source['input_ids'].squeeze()
         source_mask = source['attention_mask'].squeeze()
         target_ids = target['input_ids'].squeeze()
@@ -81,6 +81,7 @@ def train(epoch, tokenizer, model, device, loader, optimizer):
         optimizer.step()
         # xm.optimizer_step(optimizer)
         # xm.mark_step()
+        return loss
 
 def validate(epoch, tokenizer, model, device, loader):
     model.eval()
@@ -103,6 +104,9 @@ def validate(epoch, tokenizer, model, device, loader):
                 )
             preds = [tokenizer.decode(g, skip_special_tokens=True, clean_up_tokenization_spaces=True) for g in generated_ids]
             target = [tokenizer.decode(t, skip_special_tokens=True, clean_up_tokenization_spaces=True)for t in y]
+
+            # tennsorboard 추가할 부분 여기인 듯??? 
+
             if _%100==0:
                 print(f'Completed {_}')
 
@@ -113,14 +117,18 @@ def validate(epoch, tokenizer, model, device, loader):
 
 # test without wandb
 from transformers import T5Tokenizer, T5Model
+from torch.utils.tensorboard import SummaryWriter
 
 def main():
     # WandB – Initialize a new run
 #     wandb.init(project="transformers_tutorials_summarization")
 
+    
+
     # WandB – Config is a variable that holds and saves hyperparameters and inputs
     # Defining some key variables that will be used later on in the training  
 #     config = wandb.config          # Initialize config
+    # 나중에 config로 변수를 다 받을 부분들
     TRAIN_BATCH_SIZE = 2    # input batch size for training (default: 64)
     VALID_BATCH_SIZE = 2    # input batch size for testing (default: 1000)
     TRAIN_EPOCHS = 2        # number of epochs to train (default: 10)
@@ -129,6 +137,18 @@ def main():
     SEED = 42               # random seed (default: 42)
     MAX_LEN = 512
     SUMMARY_LEN = 150 
+    LOGGER = 1
+
+    # tensorboard loggers
+    if LOGGER:
+        tblogger = SummaryWriter("tensorboard")# os.path.join(self.file_name, "tensorboard"))
+    
+
+    # # 기록하는 내용들은 이렇게 보내줘야함
+    # self.tblogger.add_scalar("train/total_loss", loss_meter['total_loss'].latest, self.total_iter) 
+    # self.tblogger.add_scalar("train/iou_loss", loss_meter['iou_loss'].latest, self.total_iter) 
+
+
 
     # Set random seeds and deterministic pytorch for reproducibility
     torch.manual_seed(SEED) # pytorch random seed
@@ -198,7 +218,9 @@ def main():
     print('Initiating Fine-Tuning for the model on our dataset')
 
     for epoch in range(TRAIN_EPOCHS):
-        train(epoch, tokenizer, model, device, training_loader, optimizer)
+        loss = train(epoch, tokenizer, model, device, training_loader, optimizer)
+        print(f'\nloss check\n{epoch}\n{loss}\n')
+        tblogger.add_scalar("train/total_loss", loss, epoch) 
 
 
     # Validation loop and saving the resulting file with predictions and acutals in a dataframe.
