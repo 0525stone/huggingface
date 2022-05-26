@@ -138,9 +138,9 @@ def main():
     # Defining some key variables that will be used later on in the training  
 #     config = wandb.config          # Initialize config
     # 나중에 config로 변수를 다 받을 부분들
-    TRAIN_BATCH_SIZE = 2    # input batch size for training (default: 64)
-    VALID_BATCH_SIZE = 2    # input batch size for testing (default: 1000)
-    TRAIN_EPOCHS =  10 # 2        # number of epochs to train (default: 10)
+    TRAIN_BATCH_SIZE = 4 # 2    # input batch size for training (default: 64)
+    VALID_BATCH_SIZE = 4 # 2    # input batch size for testing (default: 1000)
+    TRAIN_EPOCHS =  20 # 2        # number of epochs to train (default: 10)
     VAL_EPOCHS = 1 
     LEARNING_RATE = 1e-4    # learning rate (default: 0.01)
     SEED = 42               # random seed (default: 42)
@@ -154,7 +154,7 @@ def main():
 
     # tensorboard loggers
     if LOGGER:
-        tblogger = SummaryWriter("tensorboard")# os.path.join(self.file_name, "tensorboard"))
+        tblogger = SummaryWriter("tensorboard/set")# os.path.join(self.file_name, "tensorboard"))
     
 
     # # 기록하는 내용들은 이렇게 보내줘야함
