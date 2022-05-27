@@ -156,13 +156,6 @@ def main():
     if LOGGER:
         tblogger = SummaryWriter("tensorboard/set")# os.path.join(self.file_name, "tensorboard"))
     
-
-    # # 기록하는 내용들은 이렇게 보내줘야함
-    # self.tblogger.add_scalar("train/total_loss", loss_meter['total_loss'].latest, self.total_iter) 
-    # self.tblogger.add_scalar("train/iou_loss", loss_meter['iou_loss'].latest, self.total_iter) 
-
-
-
     # Set random seeds and deterministic pytorch for reproducibility
     torch.manual_seed(SEED) # pytorch random seed
     np.random.seed(SEED) # numpy random seed
@@ -171,8 +164,6 @@ def main():
     # tokenzier for encoding the text
     tokenizer = T5Tokenizer.from_pretrained("t5-base") # /content/drive/MyDrive/Colab Notebooks/t5-base
     
-    
-
     # Importing and Pre-Processing the domain data
     # Selecting the needed columns only. 
     # Adding the summarzie text in front of the text. This is to format the dataset similar to how T5 model was trained for summarization task. 
