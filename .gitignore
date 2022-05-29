@@ -2,3 +2,4 @@
 tensorboard/*
 *.csv
 temp.py
+data/*
