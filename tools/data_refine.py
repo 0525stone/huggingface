@@ -36,18 +36,24 @@ def aihub_mrc(json_data):
     
     save_df = pd.DataFrame(columns=['id','context','question','answer_text','answer_start'])
     for idx, data in enumerate(json_data):
-        # if idx<3:
-        if idx%100==0:
-            print(f'{idx} just passed')
+        if idx<3:
+        # if idx%100==0:
+        #     print(f'{idx} just passed')
 
-        for d in data['paragraphs'][0]['qas']:
-            # print(d)
-            save_df = save_df.append({'id':d['id'],
-                'context':data['paragraphs'][0]['context'],
-                'question' : d['question'],
-                'answer_text':d['answers'][0]['text'],
-                'answer_start':d['answers'][0]['answer_start']},
-                ignore_index=True)
+            for d in data['paragraphs'][0]['qas']:
+                # print(d)
+                add_df = {'id':d['id'],
+                    'context':data['paragraphs'][0]['context'],
+                    'question' : d['question'],
+                    'answer_text':d['answers'][0]['text'],
+                    'answer_start':d['answers'][0]['answer_start']}
+                save_df = pd.concat([save_df, add_df], ignore_index=True)
+                # save_df = save_df.append({'id':d['id'],
+                #     'context':data['paragraphs'][0]['context'],
+                #     'question' : d['question'],
+                #     'answer_text':d['answers'][0]['text'],
+                #     'answer_start':d['answers'][0]['answer_start']},
+                #     ignore_index=True)
     print('Done converting data format')
     return save_df
 
@@ -56,7 +62,7 @@ def aihub_mrc(json_data):
 def main():
 
     print(f'{"*"*50}    start    {"*"*50}')
-    filename = './data/aihub_mrc/ex2.json'
+    filename = './data/raw/aihub_book_mrc_train.json'
     data = read_file(filename)
 
     # aihub mrc
