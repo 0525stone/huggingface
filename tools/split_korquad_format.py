@@ -40,7 +40,7 @@ def split_json(data, total, n_split=0):
 
 
 def main():
-    filename = './data/raw/aihub_nor_know.json'
+    filename = './data/raw/aihub_mrc_noa_clue.json'
     data, total = read_file(filename)
 
     train, val, small = split_json(data,total)
