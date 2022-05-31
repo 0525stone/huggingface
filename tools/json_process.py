@@ -9,12 +9,32 @@ import argparse
 import json
 
 
-filename = '../data/aihub/mrc/aihub_mrc_noa.json'
+def json_formalize(filename):
 
-with open (filename, 'r') as f:
-    total = json.load(f)
-    data = total['data']
+    # filename = '../data/aihub/mrc/aihub_mrc_noa.json'
 
-with open ('../data/aihub/mrc/aihub_mrc_noa_ar.json', 'w') as f:
-    json.dump(total, f, indent=4, sort_keys=True)
+    with open (filename, 'r') as f:
+        total = json.load(f)
+        data = total['data']
 
+    with open ('./data/aihub/mrc/aihub_mrc_clue_ar.json', 'w') as f:
+        json.dump(total, f, indent=4, sort_keys=True)
+
+
+def json_concat(filename1, filename2, savename):
+    pass
+
+
+
+def main():
+    print('started')
+    # json_formalize('./data/aihub/mrc/aihub_mrc_clue.json')
+    filename1 = '../data/aihub/mrc/aihub_mrc_noa.json'
+    filename2 = '../data/aihub/mrc/aihub_mrc_clue.json' 
+    savename = '../data/aihub/mrc/aihub_mrc_noa_clue.json'
+    json_concat(filename1, filename2, savename)
+
+
+
+if __name__ =='__main__':
+    main()
