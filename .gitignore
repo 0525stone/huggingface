@@ -4,3 +4,4 @@ tensorboard/*
 temp.py
 data/*
 tools/.ipynb_checkpoints/split_json-checkpoint.ipynb
+*.json
